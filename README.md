@@ -7,5 +7,5 @@ Resources:
 	- Step 0: Clone a Repo to Local: https://happygitwithr.com/push-pull-github.html
 	- Step 1: Make local changes, add, commit and push to remote repo. 
 	  (You can also add contents to a file in command line using "blablabla" >> file_name)
-	- Step 2: 
+	- Step 2: Open a new project in RStudio and connect your local working directory to the new project
 3. Open file with Sublime from Linux command line: https://ashleynolan.co.uk/blog/launching-sublime-from-the-terminal (`$ sublime file_name`)
