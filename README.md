@@ -6,7 +6,7 @@
 2. Use Git and GitHub to manage R code: 
 	- Step 0: Clone a Repo to Local using Git ( https://happygitwithr.com/push-pull-github.html )
 	- Step 1: Open a new project in RStudio and connect your Git local working directory to the new project (Instead of creating a new project as said in 12.3, connect a new R project to an existing Git local directory https://happygitwithr.com/rstudio-git-github.html)
-	- Step 3: Make local changes in RStudio, and then add, commit and push to remote repo. 
+	- Step 2: Make local changes in RStudio, and then add, commit and push to remote repo. 
 
 http://r-pkgs.had.co.nz/git.html
 
