@@ -1,0 +1,387 @@
+---
+title: "Lab2 - Assignment2"
+author: "Fei Xie"
+output:
+  pdf_document: default
+  html_document: default
+  highlight: tango_dark
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Lab2- Part1: 2a, 2b
+
+```{r}
+library(readr)
+library(car)
+library(lmtest)
+library(ggplot2)
+library(GGally)
+library(gridExtra)
+library(MASS)
+library(leaps)
+library(glmnet)
+library(caret)
+library(gbm)
+library(tidyverse)
+library(dplyr) # sample_n(), sample_frac(), arrang(), summerise(), %>% (pipe) (ref:https://datacarpentry.org/R-genomics/04-dplyr.html)
+```
+
+## Lab2a. Measures of Central Tendency/Histograms/ Data Manipulation: 
+### Generate Central Tendency values for EPI and DALY variable 
+
+Note: I used the EPI/EPI_data.csv under https://aquarius.tw.rpi.edu/html/DA/EPI/
+```{r}
+data <- read_csv("EPI_data.csv")
+# data %>% glimpse()
+attach(data)
+```
+
+```{r}
+# summary() shows the mean, median, and quantiles for numeric variables in a data frame
+summary(EPI)
+```
+```{r}
+summary(DALY)
+```
+### Generate the Histogram for EPI and DALY variables 
+####	Generate the Histogram for EPI variable 
+```{r}
+hist(EPI)
+```
+#### Generate the Histogram for DALY variable 
+```{r}
+hist(DALY)
+```
+
+### Data Manipulation with Dplyr 
+```{r}
+df_EPI = data.frame(EPI)
+df_DALY = data.frame(DALY)
+# (1) sample_n() ==> pick random number of rows that we wish to choose:
+# random 5 rows
+sample_n(df_EPI, 5) 
+```
+```{r}
+sample_n(df_DALY, 5) 
+```
+
+```{r}
+# (2) sample_frac() ==> pick a percentage of rows
+# sample with a 10% of rows from the total number of rows 
+sample_frac(df_EPI, 0.1) 
+```
+```{r}
+sample_frac(df_DALY, 0.1) 
+```
+
+
+```{r}
+# (4)  arrange() and desc() ==> arrange values in the descending order in the EPI and DALY  
+new_decs_EPI  <- arrange( data, desc(EPI) )
+new_decs_DALY <- arrange( data, desc(DALY) )
+```
+```{r}
+new_decs_EPI 
+```
+```{r}
+new_decs_DALY 
+```
+
+```{r}
+# (5) mutate() ==> create new columns (ref: https://www.sharpsightlabs.com/blog/add-a-column-to-a-dataframe-in-r/)
+# (ref: https://cengel.github.io/R-data-wrangling/dplyr.html)
+
+# in additing to selecting sets of existing columns in the dataframe, sometimes 
+# we need to add new columns that are functions of existing columns in the dataframe.
+# we can use the mutate() function to do that.
+data %>% mutate(double_EPI = EPI * 2) %>% head() %>% glimpse()
+```
+```{r}
+# If you only want to see the new column instead of calling the mutate, you can 
+# use the transmute() fuction.
+# The difference between the mutate() and transmute() is that mutate() function returns
+# the entire dataframe along with the new column and the transmute() shows only the new column.
+data %>% transmute(double_DALY = DALY * 2) %>% glimpse()
+```
+```{r}
+# (6) summaries() and mean ==> summarize the data frame into a single row using another aggrigate function like sum or mean
+data %>% summarise(mean_EPI = mean(EPI, na.rm = TRUE), mean_DALY = mean(DALY, na.rm = TRUE)) %>% glimpse()
+```
+```{r}
+# (7) draw boxplot and qqplot
+boxplot(ENVHEALTH,ECOSYSTEM)
+```
+```{r}
+qqplot(ENVHEALTH,ECOSYSTEM)
+```
+
+
+## Lab2b Regression 
+
+Using the EPI (under /EPI on web) dataset find the single most important factor in increasing the EPI in a given region 
+### Linear and Least-Squares
+```{r}
+# (1) create a multilinear regression model
+lmENVH <- lm(ENVHEALTH~DALY+AIR_H+WATER_H)
+```
+```{r}
+# (2) display the mode
+lmENVH
+```
+
+1) sinece DALY has the largest coefficient, which could mean that DALY has the largest effect on  increaseing EPI in a given region
+2) all three factors are significant based on their p-values
+
+```{r}
+summary( lmENVH )
+```
+```{r}
+cENVH<-coef(lmENVH)
+cENVH
+```
+
+####	Predict
+
+```{r}
+# keep copies
+origin_DALY <- DALY
+origin_AIR_H <- AIR_H
+origin_WATER_H <- WATER_H
+```
+
+```{r}
+DALY <- c( seq(5, 95, 5) )
+AIR_H <- c( seq(5, 95, 5) )
+WATER_H <- c( seq(5, 95, 5) )
+NEW <- data.frame( DALY, AIR_H, WATER_H )
+```
+```{r}
+ pENV<- predict(lmENVH,NEW,se.fit = TRUE,interval="prediction",na.action = na.pass)
+```
+```{r}
+cENV<-predict(lmENVH,NEW,se.fit = TRUE,interval="confidence",na.action = na.pass)
+```
+reference: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/predict.lm
+
+### Repeat for AIR_E 
+```{r}
+DALY <-origin_DALY 
+AIR_H <- origin_AIR_H 
+WATER_H <- origin_WATER_H
+# (1) create a multilinear regression model
+lmAIR_E <- lm(AIR_E~DALY+AIR_H+WATER_H)
+```
+```{r}
+# (2) display the mode
+lmAIR_E
+```
+```{r}
+summary( lmAIR_E )
+```
+```{r}
+cAIR_E<-coef(lmAIR_E)
+cAIR_E
+```
+
+####	Predict
+
+```{r}
+DALY <- c( seq(5, 95, 5) )
+AIR_H <- c( seq(5, 95, 5) )
+WATER_H <- c( seq(5, 95, 5) )
+NEW <- data.frame( DALY, AIR_H, WATER_H )
+```
+```{r}
+pAIR_E<- predict(lmAIR_E,interval="prediction")
+```
+```{r}
+cAIR_E-predict(lmAIR_E,interval="prediction")
+```
+
+### Repeat for CLIMATE
+```{r}
+DALY <-origin_DALY 
+AIR_H <- origin_AIR_H 
+WATER_H <- origin_WATER_H
+# (1) create a multilinear regression model
+lmCLIMATE <- lm(CLIMATE~DALY+AIR_H+WATER_H)
+```
+```{r}
+# (2) display the mode
+lmCLIMATE
+```
+```{r}
+summary( lmCLIMATE )
+```
+```{r}
+cCLIMATE<-coef(lmCLIMATE)
+cCLIMATE
+```
+
+```{r}
+DALY <- c( seq(5, 95, 5) )
+AIR_H <- c( seq(5, 95, 5) )
+WATER_H <- c( seq(5, 95, 5) )
+NEW <- data.frame( DALY, AIR_H, WATER_H )
+```
+```{r}
+pCLIMATE<- predict(lmCLIMATE,NEW,interval="prediction")
+```
+```{r}
+cCLIMATE<-predict(lmCLIMATE,NEW,interval="confidence")
+```
+
+
+# Lab2- Part2: 2a, 2b
+## MultiLinear Regression
+```{r}
+df = read_csv( "dataset_multipleRegression.csv" )
+# attach data frame
+attach(df)
+```
+```{r}
+# create a linear model using lm(FORMULA, DATAVAR)
+# predict the fall enrollment (ROLL) using the unemployment rate (UNEM) and number of spring high school graduates (HGRAD)
+twoPredictorModel <- lm( ROLL ~ UNEM + HGRAD, df )
+# display model
+twoPredictorModel
+```
+```{r}
+# the expected fall enrollment (ROLL) given this year's unemployment rate 
+# (UNEM) of 7% and spring high school graduating class (HGRAD) of 90,000 is:
+ans1 <- -8255.7511 + 698.2681 * 7 + 0.9423 * 90000
+```
+```{r}
+# Repeat and add per capita income (INC) to the model. Predict ROLL if INC=$25,000
+# Summarize and compare the two models.
+# Comment on significance
+threePredictorModel <- lm( ROLL ~ UNEM + HGRAD + INC, df )
+# display model
+threePredictorModel
+```
+```{r}
+# the expected fall enrollment (ROLL) given this year's unemployment rate (UNEM) of 9%, spring high school graduating class (HGRAD) of 100,000, and a per capita income (INC) of $30,000
+ans2 <- -9153.2545 + 450.1245 * 9 + 0.4065 * 100000 + 4.2749 * 30000
+ans2
+```
+```{r}
+# generate model summaries
+summary(twoPredictorModel)
+```
+```{r}
+summary(threePredictorModel)
+```
+## kNN
+```{r}
+abalone <- read.csv( "abalone.csv" )
+abalone <- read.csv("abalone.csv", header =T, na.strings=c("","NA"))
+suppressWarnings(suppressMessages(library(dplyr)))
+#create an sex column that is numeric
+abalone <- abalone %>%
+  mutate(sex_num =case_when(
+    Sex %in% 'M' ~ 0,
+    Sex %in% "F"  ~ 1,
+    Sex %in% "I" ~ 2
+  ))
+#create an age column
+abalone <- abalone %>%
+  mutate(age=case_when(
+    Rings %in% 1:5 ~ "young",
+    Rings %in% 6:13 ~ "adult",
+    Rings %in% 14:30 ~ "old"
+  ))
+# remove rings, sex
+abalone <- abalone[c(-1, -9)]
+str(abalone)
+```
+```{r}
+### the dependent variable is age , with the different values young adult old
+### standardize the predictors
+set.seed(100)
+abalone_scale <- data.frame(scale(abalone[1:8]))
+### add the target variable to the data set abalone_scale 
+abalone$age <- as.factor(abalone$age)
+abalone_scale  <- cbind(abalone_scale, age = abalone$age)
+i <- sample(4177, 2088)
+abalone_train <- abalone_scale[i,]
+abalone_test <- abalone_scale[-i,]
+```
+The value of K is important in the KNN algorithm, because the prediction accuracy in the test set depends on it. The optimal value of K is the value that leads to the highest prediction accuracy.
+```{r}
+### we use the tune.knn function in the e1071 package to determine a good K number
+### this function performs a 10-fold cross-validation
+library(e1071)
+t_knn <- tune.knn(abalone_train[,-9], factor(abalone_train[,9]), k = 1:100)
+t_knn # names(t_knn) to see the list of variables
+
+```
+```{r}
+plot(t_knn)
+```
+
+```{r}
+# Run the prediction
+library(class)
+age <- abalone_train$age
+pred <- knn(train = abalone_train[,-9], test = abalone_test[,-9], cl = age, k = t_knn$best.parameters)
+```
+
+```{r}
+### get the prediction accuracy in the test set
+mean(pred == abalone_test$age)
+```
+
+```{r}
+table(pred,abalone_test$age)
+```
+
+## Kmeans (Clustering)
+```{r}
+data("iris")
+iris_dataset<-iris
+view(iris_dataset)
+```
+
+<!-- Alternatively, you can download it from an url (won't use it in this assignement) -->
+<!-- ```{r} -->
+<!-- # set the url for download -->
+<!-- url<-"https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data" -->
+<!-- # set the filename and directory to download into -->
+<!-- filename<-"./Data/iris.csv" -->
+<!-- # Download the file -->
+<!-- download.file(url=url, destfile = filename, method ="curl") -->
+<!-- print("IRIS File downloaded") -->
+<!-- iris_filedata<-read.csv(file = filename,header = FALSE,sep = ",") -->
+<!-- head(iris_filedata,7) -->
+<!-- colnames(iris_filedata)<-c("Sepal.Length","Sepal.Width","Petal.Length","Petal.Width","Species") -->
+<!-- head(iris_filedata,5) -->
+<!-- ``` -->
+
+Splitting the data into training and testing Sets
+```{r}
+# Load the Caret package which allows us to partition the data
+library(caret)
+# We use the dataset to create a partition (80% training 20% testing)
+index <- createDataPartition(iris_dataset$Species, p=0.80, list=FALSE)
+# select 20% of the data for testing
+testset <- iris_dataset[-index,]
+# select 80% of data to train the models
+trainset <- iris_dataset[index,]
+```
+
+```{r}
+# Since Kmeans is a random start algo, we need to set the seed to ensure reproduceability
+set.seed(1000)
+irisCluster <- kmeans(iris[, 1:4], centers = 3, nstart = 1000)
+irisCluster
+```
+```{r}
+table(irisCluster$cluster, iris$Species)
+```
+```{r}
+plot(iris[c("Sepal.Length", "Sepal.Width")], col=irisCluster$cluster)
+points(irisCluster$centers[,c("Sepal.Length", "Sepal.Width")], col=1:3, pch=8, cex=2)
+```
+

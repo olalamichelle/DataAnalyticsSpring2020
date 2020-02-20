@@ -1,0 +1,112 @@
+---
+title: "Data Visualization"
+output:
+  html_document: default
+  highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Reference:
+
+1. R markdown https://rmarkdown.rstudio.com/authoring_quick_tour.html
+2. Visualization Tutorial:  https://r4ds.had.co.nz/data-visualisation.html
+3. Preview: `Control + Shift + K`
+
+```{r}
+# install a package once, reload it every time you start a new session.
+# library(tidyverse) 
+```
+
+
+```{r}
+?mpg
+# mpg$displ means a car's engine size (in litres)
+# mpg$hwy means a car's fuel efficiency on the higway (measured in miles per gallon (mpg)). The lower, the worser.
+```
+
+ggplot() creates a coordinate system that you can add layers to. The first argument of ggplot() is the dataset to use in the graph. 
+
+```{r}
+# ggplot(data = mpg) creates an empty graph
+ggplot(data = mpg)
+```
+
+complete your graph by adding (+) one or more layers to ggplot(). The function geom_point() adds a layer of points to your plot, i.e. geom_point() creates a scatterplot. Each geom function in ggplot2 takes a mapping argument, which defines how variables in your dataset are mapped to visual properties. 
+
+The mapping argument is always paired with aes(), and the x and y arguments of aes() specify which variables to map to the x and y axes
+
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy))
+```
+
+you can add a categorical variable to a scatterplot by mapping it to an aesthetic -- a visual property of the objects in your plot. And ggplot2 will 
+- 1. automatically assign a unique level of the aesthetic 
+     (here a unique color) to each unique value of the variable,a process known as scaling. 
+- 2. add a legend that explains which values correspond to which classes.
+
+1. By Color
+e.g.you can map the colors of your points to the class variable to reveal the class of each car
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, color = class))
+```
+
+2. By Shape
+ggplot2 will only use six shapes at a time. By default, additional groups will go unplotted when you use the shape aesthetic.
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, shape = class)) 
+```
+We get a warning here, because mapping an unordered variable (class) to an ordered aesthetic (size) is not a good idea.
+
+3. By Size of Points
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, size = class)) 
+```
+
+4. By Opacity
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, alpha = class))
+```
+
+5. Customized
+You can also set the aesthetic properties of your geom manually by setting the aesthetic by name as an argument of your geom function; i.e. it goes **OUTSIDE** of aes()
+
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy), color = "blue")
+```
+
+## Exercies
+
+Map a continuous variable to color, size, and shape. How do these aesthetics behave differently for categorical vs. continuous variables?
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, color = cty))
+
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, size = cty))
+
+# Error: A continuous variable can not be mapped to shape
+# ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, shape = cty))
+```
+
+What happens if you map the same variable to multiple aesthetics?
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, color = class, alpha = class))
+```
+
+What does the stroke aesthetic do? What shapes does it work with? (Hint: use ?geom_point)
+```{r}
+?geom_point
+
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, stroke = cty))
+```
+
+What happens if you map an aesthetic to something other than a variable name, like aes(colour = displ < 5)? Note, you’ll also need to specify x and y.
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, color = displ < 5))
+```
+
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy)) + facet_wrap(~ class, nrow = 2)
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy)) + facet_grid(drv ~ cyl)
+```

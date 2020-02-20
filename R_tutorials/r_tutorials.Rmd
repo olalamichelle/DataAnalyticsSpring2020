@@ -1,0 +1,36 @@
+---
+title: "R_tutorial"
+output:
+  pdf_document: default
+  html_document: default
+  highlight: tango_dark
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Reference: 
+https://rmarkdown.rstudio.com/authoring_quick_tour.html
+https://bookdown.org/yihui/rmarkdown/pdf-document.html
+
+Creating documents with R Markdown starts with an .Rmd file that contains a combination of markdown (content with simple text formatting) and R code chunks. The .Rmd file is fed to knitr ⧉, which executes all of the R code chunks and creates a new markdown (.md) document which includes the R code and it’s output.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
